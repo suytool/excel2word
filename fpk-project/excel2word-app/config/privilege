@@ -1,0 +1,8 @@
+{
+    "defaults":
+    {
+        "run-as": "package"
+    },
+    "username": "excel2word-app",
+    "groupname": "excel2word-app"
+}

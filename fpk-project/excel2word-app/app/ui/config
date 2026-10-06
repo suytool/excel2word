@@ -1,0 +1,13 @@
+{
+    ".url": {
+        "excel2word-app.Application": {
+            "title": "Excel转Word",
+            "icon": "images/icon_{0}.png",
+            "type": "iframe",
+            "protocol": "http",
+            "port": "7721",
+            "url": "/",
+            "allUsers": false
+        }
+    }
+}

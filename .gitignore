@@ -1,0 +1,14 @@
+# 编译产物
+/excel2word
+/excel2word.exe
+
+# 飞牛 fpk 打包产物
+*.fpk
+
+# 打包工具（体积较大，按需自行下载）
+fnpack-linux-amd64
+fnpack-linux-arm64
+
+# 系统/编辑器文件
+.DS_Store
+*.log

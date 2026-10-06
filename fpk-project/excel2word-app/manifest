@@ -1,0 +1,13 @@
+appname=excel2word-app
+version               = 0.1.3
+display_name=Excel转Word
+desc=批量将Excel数据填充到Word模板
+platform=x86
+source=thirdparty
+maintainer=suytool
+distributor=suytool
+service_port=7721
+checkport=true
+desktop_uidir=ui
+desktop_applaunchname=excel2word-app.Application
+changelog             = 整体界面等比紧凑化并适配桌面小窗口完整显示；版本号同步 0.1.3

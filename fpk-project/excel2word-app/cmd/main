@@ -1,0 +1,124 @@
+#!/bin/bash
+
+LOG_FILE="${TRIM_PKGVAR}/info.log"
+PID_FILE="${TRIM_PKGVAR}/app.pid"
+BIN_PATH="${TRIM_APPDEST}/bin/excel2word"
+PORT="${TRIM_SERVICE_PORT:-7721}"
+OUT_DIR="${TRIM_PKGVAR}/output"
+UPLOAD_DIR="${TRIM_PKGVAR}/tmp"
+
+log_msg() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> ${LOG_FILE}
+}
+
+check_process() {
+    local pid=$1
+    if [ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null; then
+        return 0  # process exist
+    else
+        return 1  # process not exist
+    fi
+}
+
+status() {
+    if [ -f "${PID_FILE}" ]; then
+        pid=$(head -n 1 "${PID_FILE}" | tr -d '[:space:]')
+        if check_process "${pid}"; then
+            return 0
+        else
+            # Process is not running but pidfile exists - clean it up
+            rm -f "${PID_FILE}"
+        fi
+    fi
+    return 1
+}
+
+start_process() {
+    if status; then
+        return 0
+    fi
+
+    if [ ! -x "${BIN_PATH}" ]; then
+        echo "可执行文件不存在或无执行权限: ${BIN_PATH}" > "${TRIM_TEMP_LOGFILE}"
+        return 1
+    fi
+
+    mkdir -p "${OUT_DIR}" "${UPLOAD_DIR}" 2>/dev/null
+
+    log_msg "Starting process ..."
+    # 切换到应用目录，保证 ./static 相对路径可用
+    cd "${TRIM_APPDEST}" || return 1
+
+    nohup env PORT="${PORT}" OUTPUT_DIR="${OUT_DIR}" UPLOAD_DIR="${UPLOAD_DIR}" "${BIN_PATH}" >> "${LOG_FILE}" 2>&1 &
+    printf "%s" "$!" > "${PID_FILE}"
+
+    sleep 1
+    if status; then
+        log_msg "Started, pid=$(cat ${PID_FILE}), port=${PORT}"
+        return 0
+    fi
+
+    echo "应用启动失败，请查看日志: ${LOG_FILE}" > "${TRIM_TEMP_LOGFILE}"
+    rm -f "${PID_FILE}"
+    return 1
+}
+
+stop_process() {
+    log_msg "Stopping process ..."
+
+    if [ -r "${PID_FILE}" ]; then
+        pid=$(head -n 1 "${PID_FILE}" | tr -d '[:space:]')
+
+        log_msg "pid=${pid}"
+        if ! check_process "${pid}"; then
+            # process not exist, delete pidfile
+            rm -f "${PID_FILE}"
+            log_msg "remove pid file 1"
+            return 0
+        fi
+
+        log_msg "send TERM signal to PID:${pid}..."
+        kill -TERM ${pid} >> ${LOG_FILE} 2>&1
+
+        local count=0
+        while check_process "${pid}" && [ $count -lt 10 ]; do
+            sleep 1
+            count=$((count + 1))
+            log_msg "waiting process terminal... (${count}s/10s)"
+        done
+
+        if check_process "${pid}"; then
+            log_msg "send KILL signal to PID:${pid}..."
+            kill -KILL "${pid}"
+            sleep 1
+            rm -f "${PID_FILE}"
+        else
+            log_msg "process killed..."
+            rm -f "${PID_FILE}"
+        fi
+    fi
+
+    return 0
+}
+
+case $1 in
+start)
+    # run start command. exit 0 if success, exit 1 if failed
+    start_process
+    ;;
+stop)
+    # run stop command. exit 0 if success, exit 1 if failed
+    stop_process
+    ;;
+status)
+    # check application status command. exit 0 if running, exit 3 if not running
+    if status; then
+        exit 0
+    else
+        exit 3
+    fi
+    ;;
+*)
+    exit 1
+    ;;
+esac

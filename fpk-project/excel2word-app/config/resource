@@ -1,0 +1,28 @@
+{
+    "data-share":
+    {
+        "shares":
+        [
+            {
+                "name": "excel2word-app",
+                "permission":
+                {
+                    "rw":
+                    [
+                        "excel2word-app"
+                    ]
+                }
+            },
+            {
+                "name": "excel2word-app/data",
+                "permission":
+                {
+                    "rw":
+                    [
+                        "excel2word-app"
+                    ]
+                }
+            }
+        ]
+    }
+}
