@@ -2,8 +2,10 @@
 /excel2word
 /excel2word.exe
 
-# 飞牛 fpk 打包产物
+# 飞牛 fpk 打包产物（releases/ 下的正式发布包除外）
+fpk-project/*.fpk
 *.fpk
+!releases/*.fpk
 
 # 打包工具（体积较大，按需自行下载）
 fnpack-linux-amd64
